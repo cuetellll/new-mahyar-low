@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mahyar Compressor PRO v2.0 — استودیوی پیشرفته فشرده‌سازی ویدیو</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <!-- Google Fonts: Vazirmatn (Persian) + Orbitron & Inter (Cyber HUD English) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800;900&family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="fullscreen-mode">
+
+  <!-- Interactive Mouse-Reactive Nebula + Cyber Constellation Canvas -->
+  <canvas id="aurora-canvas"></canvas>
+  <!-- Confetti & Spark Celebration Canvas -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast-alert" class="toast-alert" role="status" aria-live="polite"></div>
+
+  <!-- Hidden File & Folder Inputs for Video Selection -->
+  <input type="file" id="video-input" accept="video/*,.mkv,.avi,.mov,.mp4,.webm,.flv,.wmv,.ts,.m4v" multiple hidden>
+  <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN FULLSCREEN CYBER STUDIO COCKPIT                                  -->
+  <!-- ===================================================================== -->
+  <div id="app-window" class="app-window">
+
+    <!-- 1. TOP CYBER HUD HEADER (Upgraded with Theme Switcher, Always-on-Top Pin, Dock & Exit) -->
+    <header class="hud-header" id="hud-header">
+      <div class="brand-cluster">
+        <div class="logo-orb" id="logo-orb" title="Mahyar Compressor Engine">
+          <svg viewBox="0 0 64 64" class="logo-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="mahyarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="50%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#mahyarGrad)" stroke="#22d3ee" stroke-width="1.8"/>
+            <path d="M18 21 L29 32 L18 43" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="chev-left"/>
+            <path d="M46 21 L35 32 L46 43" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="chev-right"/>
+          </svg>
+          <span class="orb-ring"></span>
+        </div>
+
+        <div class="brand-titles">
+          <div class="title-row">
+            <h1 class="brand-name" id="brand-name">Mahyar Compressor</h1>
+            <span class="version-pill">PRO v2.0</span>
+            <span class="gpu-live-pill" id="gpu-live-pill">
+              <i class="fa-solid fa-microchip" id="engine-pill-icon"></i>
+              <span id="engine-pill-text" data-i18n="gpu_badge">NVIDIA NVENC READY</span>
+            </span>
+          </div>
+          <p class="brand-tagline" data-i18n="tagline">◈ موتور فوق‌پیشرفته فشرده‌سازی ویدیو مهیار</p>
+        </div>
+      </div>
+
+      <!-- Mouse Reactive Coordinates & Source/CI Hub Button -->
+      <div class="hud-sensor-bar">
+        <div class="sensor-chip" title="Interactive Mouse Nebula Field">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span id="theme-name-label" data-i18n="mouse_fx_active">تم: سایبر نئون</span>
+          <code id="cursor-coords" class="coords-readout">X:50% Y:50%</code>
+        </div>
+        <button class="code-btn" id="btn-open-source" title="دریافت سورس کامل پایتون و GitHub Actions">
+          <i class="fa-brands fa-python"></i>
+          <span data-i18n="source_btn">دانلود سورس پایتون + گیت‌هاب اکشن</span>
+        </button>
+      </div>
+
+      <!-- Creative Window & HUD Controls -->
+      <div class="window-controls">
+        <button class="hud-icon-btn theme-cycle-btn" id="btn-theme" title="تغییر تم نوری بک‌گراند (۴ تم نئونی)">
+          <i class="fa-solid fa-palette"></i>
+          <span class="btn-mini-label" data-i18n="theme_short">تم نئون</span>
+        </button>
+        <button class="hud-icon-btn pin-btn" id="btn-pin" title="سنجاق روی همه پنجره‌ها (Always on Top)">
+          <i class="fa-solid fa-thumbtack"></i>
+        </button>
+        <button class="hud-icon-btn lang-btn" id="btn-lang" title="تغییر زبان (FA / EN)">EN</button>
+        <button class="hud-icon-btn dock-trigger-btn" id="btn-to-dock" data-title-i18n="mini_mode" title="کوچک شدن به نوار پایین (Mini Dock)">
+          <i class="fa-solid fa-window-minimize"></i>
+          <span class="btn-mini-label" data-i18n="dock_short">داک پایین</span>
+        </button>
+        <button class="hud-icon-btn" id="btn-fullscreen" data-title-i18n="fullscreen" title="تمام‌صفحه (Fullscreen)">
+          <i class="fa-solid fa-expand" id="fs-icon"></i>
+        </button>
+        <button class="hud-icon-btn danger-btn" id="btn-exit-top" data-title-i18n="exit_full" title="خروج کامل از برنامه">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. TOP LIVE TELEMETRY RIBBON -->
+    <section class="telemetry-ribbon" aria-label="Compression Telemetry">
+      <div class="telemetry-grid">
+        <div class="telemetry-card">
+          <div class="tele-icon cyan"><i class="fa-solid fa-film"></i></div>
+          <div class="tele-info">
+            <span class="tele-label" data-i18n="files">◈ تعداد فایل‌ها</span>
+            <strong class="tele-val" id="stat-files">0 / 0</strong>
+          </div>
+        </div>
+
+        <div class="telemetry-card">
+          <div class="tele-icon purple"><i class="fa-solid fa-hard-drive"></i></div>
+          <div class="tele-info">
+            <span class="tele-label" data-i18n="original">◈ حجم اولیه کل</span>
+            <strong class="tele-val" id="stat-orig">0 B</strong>
+          </div>
+        </div>
+
+        <div class="telemetry-card">
+          <div class="tele-icon magenta"><i class="fa-solid fa-bolt-lightning"></i></div>
+          <div class="tele-info">
+            <span class="tele-label" data-i18n="compressed">◈ حجم فشرده شده</span>
+            <strong class="tele-val cyan-txt" id="stat-comp">0 B</strong>
+          </div>
+        </div>
+
+        <div class="telemetry-card saved-highlight">
+          <div class="tele-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="tele-info">
+            <span class="tele-label" data-i18n="saved">◈ حجم ذخیره‌شده</span>
+            <div class="saved-row">
+              <strong class="tele-val green-txt" id="stat-saved">—</strong>
+              <span class="saved-badge" id="stat-saved-sub">0 MB آزاد شد</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Laser Energy Progress Bar -->
+      <div class="overall-laser-track">
+        <div class="overall-laser-fill" id="overall-bar" style="width: 0%"></div>
+      </div>
+    </section>
+
+    <!-- 3. MAIN COCKPIT WORKSPACE -->
+    <main class="cockpit-body">
+
+      <!-- COMMAND DECK (Settings & Tactical Launchpad Panel) -->
+      <aside class="command-deck glass-panel">
+        <div class="deck-scroll">
+          <!-- Quality Preset -->
+          <div class="control-group">
+            <div class="group-header">
+              <label class="s-label" data-i18n="quality">◈ پروفایل کیفیت فشرده‌سازی</label>
+              <span class="crf-chip" id="crf-readout">CRF 27 · 96k</span>
+            </div>
+            <div class="segmented-control" data-group="preset" id="seg-preset">
+              <button type="button" class="seg-btn" data-val="0" data-i18n="p_tiny">فوق فشرده</button>
+              <button type="button" class="seg-btn active" data-val="1" data-i18n="p_bal">متعادل هوشمند</button>
+              <button type="button" class="seg-btn" data-val="2" data-i18n="p_high">کیفیت استودیویی</button>
+            </div>
+            <p class="preset-desc" id="preset-desc" data-i18n="pd_bal">بهترین تعادل طلایی بین حجم کم و شفافیت تصویر بالا.</p>
+          </div>
+
+          <!-- Target File Size Mode -->
+          <div class="control-group">
+            <label class="s-label" data-i18n="target_mode">◈ حجم هدف دقیق (مگابایت)</label>
+            <div class="segmented-control four-cols" data-group="target" id="seg-target">
+              <button type="button" class="seg-btn active" data-val="0" data-i18n="t_none">خودکار (CRF)</button>
+              <button type="button" class="seg-btn" data-val="25" data-i18n="t_discord">۲۵ مگ</button>
+              <button type="button" class="seg-btn" data-val="50" data-i18n="t_telegram">۵۰ مگ</button>
+              <button type="button" class="seg-btn" data-val="10" data-i18n="t_web">۱۰ مگ</button>
+            </div>
+          </div>
+
+          <!-- Video Codec Engine -->
+          <div class="control-group">
+            <label class="s-label" data-i18n="codec">◈ موتور کدک تصویر</label>
+            <div class="segmented-control two-cols" data-group="codec" id="seg-codec">
+              <button type="button" class="seg-btn active" data-val="h265" data-i18n="c_h265">H.265 · کم‌حجم</button>
+              <button type="button" class="seg-btn" data-val="h264" data-i18n="c_h264">H.264 · سازگار</button>
+            </div>
+          </div>
+
+          <!-- Output Resolution -->
+          <div class="control-group">
+            <label class="s-label" data-i18n="res">◈ رزولوشن خروجی</label>
+            <div class="segmented-control four-cols" data-group="res" id="seg-res">
+              <button type="button" class="seg-btn active" data-val="orig" data-i18n="r_orig">اصلی</button>
+              <button type="button" class="seg-btn" data-val="1080p">1080p</button>
+              <button type="button" class="seg-btn" data-val="720p">720p</button>
+              <button type="button" class="seg-btn" data-val="480p">480p</button>
+            </div>
+          </div>
+
+          <!-- NEW: Output Frame Rate (FPS) Selector -->
+          <div class="control-group">
+            <label class="s-label" data-i18n="fps">◈ نرخ فریم تصویر (FPS)</label>
+            <div class="segmented-control" data-group="fps" id="seg-fps">
+              <button type="button" class="seg-btn active" data-val="orig" data-i18n="f_orig">اصلی</button>
+              <button type="button" class="seg-btn" data-val="60" data-i18n="f_60">60 فریم</button>
+              <button type="button" class="seg-btn" data-val="30" data-i18n="f_30">30 فریم</button>
+            </div>
+          </div>
+
+          <!-- Hardware GPU, Mute & NEW Turbo Boost Toggles -->
+          <div class="toggles-box">
+            <div class="toggle-row" id="toggle-gpu" role="switch" aria-checked="true" tabindex="0">
+              <div class="toggle-text">
+                <span class="toggle-title" data-i18n="gpu">شتاب‌دهنده کارت گرافیک (GPU)</span>
+                <span class="toggle-hint" data-i18n="gpu_detected">آماده به کار: NVIDIA NVENC · سوییچ خودکار به CPU</span>
+              </div>
+              <div class="cyber-switch on"><span class="switch-thumb"></span></div>
+            </div>
+
+            <div class="toggle-row" id="toggle-mute" role="switch" aria-checked="false" tabindex="0">
+              <div class="toggle-text">
+                <span class="toggle-title" data-i18n="mute">حذف باند صدا (Mute)</span>
+                <span class="toggle-hint" data-i18n="mute_hint">بی‌صدا کردن ویدیو برای کاهش حجم بیشتر</span>
+              </div>
+              <div class="cyber-switch"><span class="switch-thumb"></span></div>
+            </div>
+
+            <div class="toggle-row" id="toggle-turbo" role="switch" aria-checked="false" tabindex="0">
+              <div class="toggle-text">
+                <span class="toggle-title" data-i18n="turbo">پردازش فوق‌سریع (Turbo Boost)</span>
+                <span class="toggle-hint" data-i18n="turbo_hint">اختصاص حداکثر توان پردازشی سیستم به موتور مهیار</span>
+              </div>
+              <div class="cyber-switch"><span class="switch-thumb"></span></div>
+            </div>
+          </div>
+
+          <!-- Output Destination -->
+          <div class="control-group">
+            <label class="s-label" data-i18n="out">◈ مسیر ذخیره خروجی</label>
+            <div class="out-folder-row">
+              <button type="button" class="ghost-pill-btn flex-1" id="btn-choose-out">
+                <i class="fa-solid fa-folder-tree"></i>
+                <span id="out-folder-label" data-i18n="out_same">کنار فایل اصلی (_mahyar.mp4)</span>
+              </button>
+              <button type="button" class="hud-icon-btn small" id="btn-reset-out" title="بازنشانی مسیر" style="display:none">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRIMARY LAUNCHPAD (With Pause / Resume Button!) -->
+        <div class="launchpad-zone">
+          <div class="launch-main-row">
+            <button type="button" class="primary-glow-btn" id="btn-start">
+              <i class="fa-solid fa-rocket" id="start-icon"></i>
+              <span id="start-label" data-i18n="start">شروع فشرده‌سازی</span>
+            </button>
+            <button type="button" class="amber-glow-btn hidden" id="btn-pause" title="مکث / ادامه پردازش (Ctrl+P)">
+              <i class="fa-solid fa-pause" id="pause-icon"></i>
+              <span id="pause-label" data-i18n="pause">مکث موقت</span>
+            </button>
+          </div>
+
+          <div class="launchpad-sub-actions">
+            <button type="button" class="ghost-pill-btn" id="btn-open-folder">
+              <i class="fa-solid fa-folder-open"></i>
+              <span data-i18n="open_folder">پوشه خروجی</span>
+            </button>
+            <button type="button" class="ghost-pill-btn cyan-border" id="btn-shrink-bottom">
+              <i class="fa-solid fa-chevron-down"></i>
+              <span data-i18n="mini_mode">انتقال به نوار پایین</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- HOLOGRAPHIC DROP PORTAL & TACTICAL QUEUE MATRIX -->
+      <section class="stage-matrix">
+        <!-- Drop Zone -->
+        <div class="drop-portal" id="drop-portal" tabindex="0" role="button" aria-label="Drop videos or click to add">
+          <div class="portal-rings">
+            <span class="ring r1"></span>
+            <span class="ring r2"></span>
+            <span class="ring r3"></span>
+            <div class="portal-core">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+          </div>
+
+          <div class="portal-copy">
+            <h2 class="portal-title" id="portal-title" data-i18n="drop_title">ویدیوها را در موتور Mahyar رها کنید</h2>
+            <p class="portal-sub" id="portal-sub" data-i18n="drop_sub">یا برای انتخاب فایل‌ها و پوشه‌ها کلیک کنید</p>
+            <div class="format-chips">
+              <span class="fmt-chip">MP4</span>
+              <span class="fmt-chip">MKV</span>
+              <span class="fmt-chip">MOV</span>
+              <span class="fmt-chip">AVI</span>
+              <span class="fmt-chip">WEBM</span>
+              <span class="fmt-chip highlight">60/30 FPS</span>
+              <span class="fmt-chip highlight">HEVC 10-BIT</span>
+            </div>
+          </div>
+
+          <div class="portal-quick-demo">
+            <button type="button" class="demo-seed-btn" id="btn-add-demo">
+              <i class="fa-solid fa-wand-sparkles"></i>
+              <span data-i18n="add_demo_files">افزودن ویدیوهای نمونه برای تست آنی</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Upgraded Tactical Queue Header & Toolbar -->
+        <div class="queue-header" id="queue-header">
+          <div class="q-title-wrap">
+            <span class="s-label" data-i18n="queue">◈ صف پردازش و فشرده‌سازی</span>
+            <span class="queue-count-badge" id="queue-count-badge">3</span>
+          </div>
+          <div class="q-actions">
+            <button type="button" class="ghost-pill-btn small" id="btn-add-more" title="افزودن فایل‌های ویدیویی (Ctrl+O)">
+              <i class="fa-solid fa-plus"></i>
+              <span data-i18n="add_btn">+ افزودن ویدیو</span>
+            </button>
+            <button type="button" class="ghost-pill-btn small" id="btn-add-folder" title="اسکن و افزودن کل ویدیوهای یک پوشه">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span data-i18n="add_folder">+ افزودن پوشه</span>
+            </button>
+            <button type="button" class="ghost-pill-btn small" id="btn-add-sample-bar" title="افزودن ویدیوی تستی">
+              <i class="fa-solid fa-film"></i>
+              <span data-i18n="sample_short">+ نمونه</span>
+            </button>
+            <button type="button" class="ghost-pill-btn small" id="btn-clear-done" title="پاک کردن ویدیوهای تمام‌شده از لیست">
+              <i class="fa-solid fa-check-double"></i>
+              <span data-i18n="clear_done">حذف انجام‌شده‌ها</span>
+            </button>
+            <button type="button" class="ghost-pill-btn small danger-hover" id="btn-clear" title="پاک کردن کامل صف">
+              <i class="fa-solid fa-trash-can"></i>
+              <span data-i18n="clear">پاکسازی همه</span>
+            </button>
+            <button type="button" class="hud-icon-btn small" id="btn-copy-report" title="کپی گزارش کامل آمار فشرده‌سازی در کلیپ‌بورد">
+              <i class="fa-regular fa-clipboard"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Queue Cards Scroll List -->
+        <div class="queue-list" id="queue-list" role="list">
+          <!-- Populated dynamically by js/app.js -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING BOTTOM MINI-DOCK & SYSTEM TRAY CONTROLLER                    -->
+  <!-- ===================================================================== -->
+  <div id="bottom-mini-dock" class="bottom-mini-dock hidden" role="region" aria-label="Mahyar Compressor Bottom Mini Dock">
+    <div class="dock-brand" id="dock-brand-restore" title="دوبار کلیک برای بازگشت به نمای کامل">
+      <div class="dock-logo">
+        <img src="assets/logo.png" alt="Mahyar logo">
+        <span class="dock-pulse-dot" id="dock-status-dot"></span>
+      </div>
+      <div class="dock-meta">
+        <div class="dock-title-row">
+          <strong>Mahyar Compressor</strong>
+          <span class="dock-pct-badge" id="dock-pct-badge">READY</span>
+        </div>
+        <span class="dock-sub-status" id="dock-status-text" data-i18n="dock_status_idle">آماده پردازش در پس‌زمینه</span>
+        <div class="dock-mini-progress">
+          <div class="dock-mini-bar" id="dock-mini-bar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dock-actions">
+      <button type="button" class="dock-btn" id="dock-btn-add" title="افزودن ویدیو جدید">
+        <i class="fa-solid fa-plus"></i>
+        <span data-i18n="add_btn">+ افزودن ویدیو</span>
+      </button>
+
+      <button type="button" class="dock-icon-btn amber hidden" id="dock-btn-pause" title="مکث / ادامه پردازش">
+        <i class="fa-solid fa-pause" id="dock-pause-icon"></i>
+      </button>
+
+      <button type="button" class="dock-btn primary" id="dock-btn-start" title="شروع / توقف فشرده‌سازی">
+        <i class="fa-solid fa-play" id="dock-start-icon"></i>
+        <span id="dock-start-label" data-i18n="start">شروع فشرده‌سازی</span>
+      </button>
+
+      <button type="button" class="dock-icon-btn" id="dock-btn-folder" title="باز کردن پوشه خروجی">
+        <i class="fa-solid fa-folder-open"></i>
+      </button>
+
+      <button type="button" class="dock-icon-btn" id="dock-btn-theme" title="تغییر تم نئونی">
+        <i class="fa-solid fa-palette"></i>
+      </button>
+
+      <button type="button" class="dock-icon-btn expand" id="dock-btn-expand" title="بازگشت به نمای کامل (Expand)">
+        <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+      </button>
+
+      <button type="button" class="dock-icon-btn tray-menu-btn" id="dock-btn-menu" title="منوی سریع سینی سیستم">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
+
+      <button type="button" class="dock-btn danger-exit" id="dock-btn-quit" title="خروج کامل از برنامه">
+        <i class="fa-solid fa-power-off"></i>
+        <span data-i18n="exit_full">خروج کامل</span>
+      </button>
+    </div>
+
+    <!-- Popup System Tray Quick Menu -->
+    <div id="tray-popup-menu" class="tray-popup-menu hidden">
+      <div class="tray-menu-header">
+        <img src="assets/logo.png" alt="icon">
+        <span>Mahyar Compressor v2.0</span>
+      </div>
+      <button type="button" class="tray-menu-item" id="tray-item-expand">
+        <i class="fa-solid fa-expand"></i>
+        <span data-i18n="tray_show">باز کردن نمای کامل برنامه</span>
+      </button>
+      <button type="button" class="tray-menu-item" id="tray-item-add">
+        <i class="fa-solid fa-file-video"></i>
+        <span data-i18n="tray_add">افزودن ویدیو جدید…</span>
+      </button>
+      <button type="button" class="tray-menu-item" id="tray-item-start">
+        <i class="fa-solid fa-bolt"></i>
+        <span data-i18n="tray_start">شروع / توقف سریع صف</span>
+      </button>
+      <button type="button" class="tray-menu-item" id="tray-item-pause">
+        <i class="fa-solid fa-pause"></i>
+        <span data-i18n="tray_pause">مکث / ادامه پردازش</span>
+      </button>
+      <button type="button" class="tray-menu-item" id="tray-item-folder">
+        <i class="fa-solid fa-folder-open"></i>
+        <span data-i18n="tray_folder">باز کردن پوشه خروجی</span>
+      </button>
+      <div class="tray-divider"></div>
+      <button type="button" class="tray-menu-item danger" id="tray-item-quit">
+        <i class="fa-solid fa-power-off"></i>
+        <span data-i18n="tray_quit">خروج کامل از برنامه (Full Exit)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FULL EXIT SCREEN OVERLAY                                              -->
+  <!-- ===================================================================== -->
+  <div id="poweroff-overlay" class="poweroff-overlay hidden">
+    <div class="poweroff-card glass-panel">
+      <div class="poweroff-icon"><i class="fa-solid fa-power-off"></i></div>
+      <h2 data-i18n="exited_title">برنامه Mahyar Compressor به صورت کامل بسته شد</h2>
+      <p data-i18n="exited_sub">تمامی پردازش‌های پس‌زمینه، سینی سیستم و هسته FFmpeg با موفقیت متوقف شدند.</p>
+      <button type="button" class="primary-glow-btn" id="btn-relaunch">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span data-i18n="relaunch_btn">راه‌اندازی مجدد Mahyar Compressor</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PYTHON SOURCE & GITHUB ACTIONS FIX MODAL                              -->
+  <!-- ===================================================================== -->
+  <div id="source-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="source-modal-card glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-brands fa-python cyan-txt"></i>
+          <h3 id="modal-title" data-i18n="modal_title">فایل‌های ارتقایافته پایتون (با دکمه‌های جدید + رفع ارور dock)</h3>
+        </div>
+        <button type="button" class="hud-icon-btn small" id="btn-close-modal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-intro" data-i18n="modal_desc">
+          تمام دکمه‌های خلاقانه جدید (<strong>مکث/ادامه پردازش Pause/Resume</strong>، <strong>تغییر تم نئونی ۴گانه</strong>، <strong>سنجاق روی همه پنجره‌ها Pin</strong>، <strong>انتخاب نرخ فریم 60/30 FPS</strong>، <strong>حالت Turbo Boost</strong>، <strong>افزودن پوشه کامل</strong>، <strong>حذف انجام‌شده‌ها</strong>، <strong>کپی گزارش</strong> و <strong>دکمه‌های پخش/پوشه روی هر کارت</strong>) به همراه رفع کامل ارور <code>dock</code> در فایل‌های پایتون زیر اعمال شده‌اند:
+        </p>
+
+        <div class="file-download-grid">
+          <a href="src/vidshrink/app.py" download="app.py" class="dl-file-card highlight-card">
+            <div class="dl-icon"><i class="fa-brands fa-python"></i></div>
+            <div class="dl-meta">
+              <strong>src/vidshrink/app.py</strong>
+              <span>پنجره اصلی، دکمه‌های جدید (تم، پین، مکث/ادامه، افزودن پوشه، گزارش) + رفع ارور <code>dock</code></span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+
+          <a href="src/vidshrink/widgets.py" download="widgets.py" class="dl-file-card highlight-card">
+            <div class="dl-icon"><i class="fa-solid fa-cubes"></i></div>
+            <div class="dl-meta">
+              <strong>src/vidshrink/widgets.py</strong>
+              <span>ویجت‌های نئونی جدید، آیکون‌های تم/پین/مکث و دکمه‌های پخش/پوشه روی هر کارت ویدیو</span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+
+          <a href="src/vidshrink/engine.py" download="engine.py" class="dl-file-card">
+            <div class="dl-icon"><i class="fa-solid fa-microchip"></i></div>
+            <div class="dl-meta">
+              <strong>src/vidshrink/engine.py</strong>
+              <span>پشتیبانی واقعی از مکث/ادامه FFmpeg در ویندوز، محدودکننده 60/30 FPS و حالت Turbo</span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+
+          <a href="src/vidshrink/i18n.py" download="i18n.py" class="dl-file-card">
+            <div class="dl-icon"><i class="fa-solid fa-language"></i></div>
+            <div class="dl-meta">
+              <strong>src/vidshrink/i18n.py</strong>
+              <span>ترجمه‌های کامل فارسی و انگلیسی برای تمام دکمه‌ها و قابلیت‌های جدید</span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+
+          <a href=".github/workflows/build.yml" download="build.yml" class="dl-file-card">
+            <div class="dl-icon"><i class="fa-brands fa-github"></i></div>
+            <div class="dl-meta">
+              <strong>.github/workflows/build.yml</strong>
+              <span>ورک‌فلوی بهینه‌شده GitHub Actions برای تست خودکار و ساخت فایل EXE</span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+
+          <a href="tests/test_engine.py" download="test_engine.py" class="dl-file-card">
+            <div class="dl-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
+            <div class="dl-meta">
+              <strong>tests/test_engine.py</strong>
+              <span>تست‌های کامل شامل تست ساخت پنجره، تغییر تم، کپی گزارش و نرخ فریم</span>
+            </div>
+            <i class="fa-solid fa-download dl-arrow"></i>
+          </a>
+        </div>
+
+        <div class="terminal-box">
+          <div class="term-head">
+            <span>Windows PowerShell / CMD — اجرای مستقیم یا ساخت EXE</span>
+            <button type="button" class="copy-cmd-btn" id="btn-copy-cmd">
+              <i class="fa-regular fa-copy"></i> کپی دستورات
+            </button>
+          </div>
+          <pre id="build-cmds"><code>pip install -r requirements.txt
+python run.py
+
+# برای ساخت فایل تک‌فایلی ویندوز (dist/MahyarCompressor.exe):
+python scripts/build.py</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
