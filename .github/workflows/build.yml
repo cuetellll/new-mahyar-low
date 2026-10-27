@@ -1,0 +1,116 @@
+name: Build & Release Mahyar Compressor
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write   # needed to attach binaries to GitHub Releases
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }} · Python ${{ matrix.python-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install Linux headless GUI & XCB libraries for PySide6
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 \
+            libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-shape0 libxcb-xinerama0 libxcb-xfixes0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Generate icons if missing
+        run: |
+          if [ ! -f assets/icon.ico ]; then python scripts/make_assets.py; fi
+        shell: bash
+
+      - name: Run pytest suite
+        run: python -m pytest -v
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+  build-windows:
+    name: Build Windows Executable (MahyarCompressor.exe)
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Ensure icon assets exist
+        run: |
+          if (!(Test-Path "assets/icon.ico")) { python scripts/make_assets.py }
+        shell: powershell
+
+      - name: Build standalone MahyarCompressor.exe
+        run: python scripts/build.py
+
+      - name: Create compatibility copy & SHA-256 checksums
+        run: |
+          Copy-Item "dist/MahyarCompressor.exe" "dist/VidShrink.exe" -Force
+          Get-FileHash -Algorithm SHA256 "dist/MahyarCompressor.exe" | Out-File -Encoding utf8 "dist/MahyarCompressor.exe.sha256"
+        shell: powershell
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MahyarCompressor-windows
+          if-no-files-found: error
+          path: |
+            dist/MahyarCompressor.exe
+            dist/MahyarCompressor.exe.sha256
+
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/MahyarCompressor.exe
+            dist/MahyarCompressor.exe.sha256
+          generate_release_notes: true
